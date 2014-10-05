@@ -1,12 +1,15 @@
 from flask import Flask, jsonify, request, session, redirect, url_for, render_template, flash, g
 from setup import *
-import os, bcrypt, uuid, datetime
+import os, bcrypt, uuid, datetime, boto
+from boto.s3.key import Key
 from bson.objectid import ObjectId
 import twilio.twiml
 from twilio.rest import TwilioRestClient
+from werkzeug import secure_filename
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SK')
+app.config['UPLOAD_FOLDER'] = '/tmp'
 
 @app.before_request
 def preprocess_request():
@@ -69,6 +72,19 @@ def poll_view():
 def destroy_view(object_id):
   pending_commands.remove({'_id': ObjectId(object_id), 'key': uuid.UUID(request.values.get('key'))})
   return jsonify({'status': 'ok'})
+
+@app.route('/upload', methods=['POST'])
+def upload_view():
+  f = request.files['file']
+  key = str(uuid.uuid4()) + f.filename.split('.')[-1]
+  filename = os.path.join(app.config['UPLOAD_FOLDER'], key)
+  f.save(filename)
+  conn = boto.connect_s3()
+  bucket = conn.get_bucket('ym-remote-control')
+  k = Key(bucket)
+  k.key = key
+  k.set_contents_from_filename(filename)
+  return jsonify({'url': k.generate_url(300)})
 
 if __name__ == '__main__':
   if os.environ.get('PORT'):
