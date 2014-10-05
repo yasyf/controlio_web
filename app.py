@@ -19,7 +19,7 @@ def index_view():
   if not g.user:
     session['userid'] = None
     return redirect(url_for('login_signup_view'))
-  return render_template('index.html')
+  return render_template('index.html', twilio_number=os.getenv('TWILIO_NUMBER'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login_signup_view():
