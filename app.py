@@ -52,7 +52,10 @@ def insert_view():
 def send_view():
   client = TwilioRestClient(account=os.getenv('TWILIO_ACCOUNT_SID'), token=os.getenv('TWILIO_AUTH_TOKEN'))
   user = users.find_one({'key': uuid.UUID(request.values.get('key'))})
-  message = client.messages.create(to="+1"+user['number'], from_="+1"+os.getenv('TWILIO_NUMBER'), body=request.values.get('message'))
+  if request.values.get('media_url'):
+    message = client.messages.create(to="+1"+user['number'], from_="+1"+os.getenv('TWILIO_NUMBER'), media_url=[request.values.get('media_url')])
+  else:
+    message = client.messages.create(to="+1"+user['number'], from_="+1"+os.getenv('TWILIO_NUMBER'), body=request.values.get('message'))
   return str(message)
 
 @app.route('/poll', methods=['POST', 'GET'])
