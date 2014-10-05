@@ -121,6 +121,6 @@ def upload_view():
 
 if __name__ == '__main__':
   if os.environ.get('PORT'):
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT')), debug=False)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT')), debug=os.getenv('DEV') == 'true')
   else:
     app.run(host='0.0.0.0', port=5000, debug=True)
