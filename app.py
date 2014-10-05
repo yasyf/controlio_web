@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, session, redirect, url_for, render_template, flash, g
 from setup import *
-import os, bcrypt, uuid, datetime, boto
+import os, bcrypt, uuid, datetime, boto, mimetypes
 from boto.s3.key import Key
 from bson.objectid import ObjectId
 import twilio.twiml
@@ -77,7 +77,8 @@ def upload_view():
   conn = boto.connect_s3()
   bucket = conn.get_bucket('ym-remote-control')
   k = Key(bucket)
-  k.key = str(uuid.uuid4()) + f.filename.split('.')[-1]
+  k.key = str(uuid.uuid4()) + '.' + f.filename.split('.')[-1]
+  k.content_type = mimetypes.guess_type(f.filename)[0]
   k.set_contents_from_file(f)
   k.set_acl('public-read')
   return jsonify({'url': k.generate_url(300)})
