@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, session, redirect, url_for, render_te
 from setup import *
 import os, bcrypt, uuid
 from bson.objectid import ObjectId
+import twilio.twiml
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SK')
@@ -34,6 +35,12 @@ def login_signup_view():
       session['userid'] = str(userid)
       return redirect(url_for('index_view'))
   return render_template('login_signup.html')
+
+@app.route('/insert', methods=['POST', 'GET'])
+def insert_view():
+  resp = twilio.twiml.Response()
+  resp.message("It workd!")
+  return str(resp)
 
 if __name__ == '__main__':
   if os.environ.get('PORT'):
