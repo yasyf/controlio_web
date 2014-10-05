@@ -61,7 +61,18 @@ def handle_call_view():
   with sr.WavFile(filename) as source:
     audio = r.record(source)
   resp = twilio.twiml.Response()
-  resp.say(r.recognize(audio))
+  try:
+    command = r.recognize(audio)
+    from_number = request.values.get('From', '')[2:]
+    user = users.find_one({'number': from_number})
+    if not from_number or not user:
+      resp.say("I couldn't find {} in our database!".format(from_number))
+    else:
+      pending_commands.insert({'key': user['key'], 'message': command, 'datetime': datetime.datetime.utcnow()})
+      resp.say("I will " + command)
+  except:
+    resp.say("I didn't catch that. Please try again.")
+    resp.redirect(url_for('call_view', _external=True))
   return str(resp)
 
 @app.route('/insert', methods=['POST', 'GET'])
