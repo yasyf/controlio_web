@@ -43,7 +43,7 @@ def login_signup_view():
 def call_view():
   resp = twilio.twiml.Response()
   resp.say("Say a command")
-  resp.record(maxLength="5", action=url_for('handle_call_view', _external=True))
+  resp.record(maxLength="3", action=url_for('handle_call_view', _external=True))
   return str(resp)
 
 @app.route('/handle_call', methods=['POST', 'GET'])
