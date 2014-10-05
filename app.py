@@ -77,9 +77,9 @@ def upload_view():
   conn = boto.connect_s3()
   bucket = conn.get_bucket('ym-remote-control')
   k = Key(bucket)
-  k.set_acl('public-read')
   k.key = str(uuid.uuid4()) + f.filename.split('.')[-1]
   k.set_contents_from_file(f)
+  k.set_acl('public-read')
   return jsonify({'url': k.generate_url(300)})
 
 if __name__ == '__main__':
