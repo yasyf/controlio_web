@@ -64,8 +64,8 @@ def poll_view():
 
 @app.route('/destroy/<object_id>', methods=['POST', 'GET'])
 def destroy_view(object_id):
-  response = pending_commands.remove({'_id': ObjectId(object_id), 'key': uuid.UUID(request.values.get('key'))})
-  return jsonify({'response': response})
+  pending_commands.remove({'_id': ObjectId(object_id), 'key': uuid.UUID(request.values.get('key'))})
+  return jsonify({'status': 'ok'})
 
 if __name__ == '__main__':
   if os.environ.get('PORT'):
