@@ -1,10 +1,11 @@
 from flask import Flask, jsonify, request, session, redirect, url_for, render_template, flash, g
 from setup import *
-import os, bcrypt, uuid, datetime, boto, mimetypes
+import os, bcrypt, uuid, datetime, boto, mimetypes, requests
 from boto.s3.key import Key
 from bson.objectid import ObjectId
 import twilio.twiml
 from twilio.rest import TwilioRestClient
+import speech_recognition as sr
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SK')
@@ -37,6 +38,30 @@ def login_signup_view():
       session['userid'] = str(userid)
       return redirect(url_for('index_view'))
   return render_template('login_signup.html')
+
+@app.route('/call', methods=['POST', 'GET'])
+def call_view():
+  resp = twilio.twiml.Response()
+  resp.record(maxLength="30", action=url_for('handle_call_view', _external=True))
+  return str(resp)
+
+@app.route('/handle_call', methods=['POST', 'GET'])
+def handle_call_view():
+  filename = '/tmp/{}'.format(str(uuid.uuid4()))
+  recording_url = request.values.get("RecordingUrl", None)
+  with open(filename, 'wb') as handle:
+    response = requests.get(recording_url, stream=True)
+    for block in response.iter_content(1024):
+      if block:
+        handle.write(block)
+      else:
+        break
+  r = sr.Recognizer()
+  with sr.WavFile(filename) as source:
+    audio = r.record(source)
+  resp = twilio.twiml.Response()
+  resp.say(r.recognize(audio))
+  return str(resp)
 
 @app.route('/insert', methods=['POST', 'GET'])
 def insert_view():
