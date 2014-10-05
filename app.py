@@ -79,8 +79,7 @@ def upload_view():
   k = Key(bucket)
   k.key = str(uuid.uuid4()) + '.' + f.filename.split('.')[-1]
   k.content_type = mimetypes.guess_type(f.filename)[0]
-  k.set_contents_from_file(f)
-  k.set_acl('public-read')
+  k.set_contents_from_file(f, headers={'Content-Type': k.content_type}, policy='public-read')
   return jsonify({'url': k.generate_url(300)})
 
 if __name__ == '__main__':
