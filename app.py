@@ -40,10 +40,10 @@ def login_signup_view():
 @app.route('/insert', methods=['POST', 'GET'])
 def insert_view():
   resp = twilio.twiml.Response()
-  from_number = request.values.get('From')
-  user = users.find_one({'number': from_number[2:]})
+  from_number = request.values.get('From', '')[2:]
+  user = users.find_one({'number': from_number})
   if not from_number or not user:
-    resp.message("We couldn't find that number in our database!")
+    resp.message("We couldn't find {} in our database!".format(from_number))
   else:
     pending_commands.insert({'key': user['key'], 'message': request.values.get('Body'), 'datetime': datetime.datetime.utcnow()})
   return str(resp)
