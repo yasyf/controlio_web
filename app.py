@@ -57,11 +57,11 @@ def handle_call_view():
         handle.write(block)
       else:
         break
+  resp = twilio.twiml.Response()
   try:
     r = sr.Recognizer()
     with sr.WavFile(filename) as source:
       audio = r.record(source)
-    resp = twilio.twiml.Response()
     command = r.recognize(audio)
     from_number = request.values.get('From', '')[2:]
     user = users.find_one({'number': from_number})
