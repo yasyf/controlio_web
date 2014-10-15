@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, session, redirect, url_for, render_template, flash, g
 from setup import *
-import os, bcrypt, uuid, datetime, boto, mimetypes, requests
+from helpers import *
+import os, bcrypt, datetime, boto, mimetypes, requests
 from boto.s3.key import Key
 from bson.objectid import ObjectId
 import twilio.twiml
@@ -24,20 +25,36 @@ def index_view():
 @app.route('/login', methods=['GET', 'POST'])
 def login_signup_view():
   if request.method == 'POST':
-    user = users.find_one({'number': request.form['number'].lower()})
+    user = users.find_one({'number': request.form['number']})
     if user:
-      if bcrypt.hashpw(str(request.form['password']), str(user['password'])) == str(user['password']):
+      if check_password(request.form['password'], user):
         session['userid'] = str(user['_id'])
         return redirect(url_for('index_view'))
       else:
         flash('Your credentials are incorrect!', 'danger')
     else:
-      key = uuid.uuid4()
-      password = bcrypt.hashpw(str(request.form['password']), bcrypt.gensalt())
-      userid = users.insert({'number': request.form['number'].lower(), 'password': password, 'key': key})
+      userid = create_user(request.form['number'], request.form['password'])
       session['userid'] = str(userid)
       return redirect(url_for('index_view'))
   return render_template('login_signup.html')
+
+@app.route('/check/<number>')
+def check_view(number):
+  if users.find_one({'number': number}):
+    return jsonify({'registered': True})
+  else:
+    return jsonify({'registered': False})
+
+@app.route('/key/<number>', methods=['GET', 'POST'])
+def key_view(number):
+  user = users.find_one({'number': number})
+  if request.method == 'POST':
+    if not user:
+      userid = create_user(number, request.form['password'])
+      user = user.find_one({'_id': userid})
+  if user and check_password(request.args['password'], user):
+    return jsonify({'key': user['key']})
+  return jsonify({'key': None})
 
 @app.route('/call', methods=['POST', 'GET'])
 def call_view():
