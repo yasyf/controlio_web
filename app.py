@@ -50,9 +50,9 @@ def key_view(number):
   user = users.find_one({'number': number})
   if request.method == 'POST':
     if not user:
-      userid = create_user(number, request.form['password'])
+      userid = create_user(number, request.form.get('password'))
       user = users.find_one({'_id': userid})
-  if user and check_password(request.args['password'], user):
+  if user and check_password(request.values.get('password'), user):
     return jsonify({'key': user['key']})
   return jsonify({'key': None})
 
